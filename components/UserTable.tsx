@@ -21,9 +21,26 @@ export default function UserTable({ initial }: { initial: User[] }) {
 
   const indexOfLast = currentPage * usersPerPage;
   const indexOfFirst = indexOfLast - usersPerPage;
-  const currentUsers = initial.slice(indexOfFirst, indexOfLast);
 
-  const totalPages = Math.ceil(initial.length / usersPerPage);
+  const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"All" | "User" | "Admin">("All");
+
+  const filtered = initial.filter((u) => {
+    const matchesQuery =
+      u.name.toLowerCase().includes(query.toLowerCase()) ||
+      u.email.toLowerCase().includes(query.toLowerCase());
+    const matchesRole = roleFilter === "All" || u.role === roleFilter;
+    return matchesQuery && matchesRole;
+  });
+
+  const [sortField, setSortField] = useState<"name" | "email" | "role">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const currentUsers = filtered
+    .sort(sortFn) // <-- we’ll add this in Step 3
+    .slice(indexOfFirst, indexOfLast);
+
+  const totalPages = Math.ceil(filtered.length / usersPerPage);
 
   async function handleDelete(user: User) {
     try {
@@ -38,14 +55,49 @@ export default function UserTable({ initial }: { initial: User[] }) {
     }
   }
 
+  function handleSort(field: "name" | "email" | "role") {
+    if (field === sortField) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  }
+
+  function sortFn(a: User, b: User) {
+    const valA = a[sortField].toString().toLowerCase();
+    const valB = b[sortField].toString().toLowerCase();
+    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  }
+
   return (
     <div className="card p-0 overflow-hidden">
+            <div className="flex gap-4 p-4 items-center">
+      <input
+        type="text"
+        placeholder="Search by name/email..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="input flex-1"
+      />
+      <select
+        className="select"
+        value={roleFilter}
+        onChange={(e) => setRoleFilter(e.target.value as "All" | "User" | "Admin")}
+      >
+        <option value="All">All</option>
+        <option value="User">User</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </div>
       <table className="table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
+            <th onClick={() => handleSort("name")} className="cursor-pointer">Name</th>
+            <th onClick={() => handleSort("email")} className="cursor-pointer">Email</th>
+            <th onClick={() => handleSort("role")} className="cursor-pointer">Role</th>
             <th className="text-right">Actions</th>
           </tr>
         </thead>

@@ -73,7 +73,11 @@ export default function UserForm() {
   const disabled = loading || !isValidName || !isValidEmail;
 
   return (
-    <form onSubmit={onSubmit} className="card p-6 space-y-4">
+    <form
+      id="add-user-form"
+      onSubmit={onSubmit}
+      className="card p-6 space-y-4"
+    >
       <h2 className="text-lg font-semibold">Add New User</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
