@@ -1,90 +1,87 @@
-# Next.js CRUD Users (MongoDB + Tailwind)
+Next.js CRUD Users (MongoDB + Tailwind)
 
-A minimal **Next.js 14 (App Router)** CRUD application for managing users.
-- Backend: **API Route Handlers** under `/app/api/users`
-- DB: **MongoDB** via **Mongoose**
-- UI: **Tailwind CSS** with a clean, responsive layout
-- Features: Create, Read, Update, Delete users (name, email, role)
+Full stack Next.js 14 CRUD application for managing users. This project demonstrates modern practices in frontend and backend integration, using MongoDB as the database and Tailwind CSS for responsive styling.
+	•	Backend: API Route Handlers under /app/api/users
+	•	Database: MongoDB with Mongoose
+	•	Frontend: Next.js with Tailwind CSS
+	•	Features: Create, Read, Update, and Delete users (name, email, role), with validation and error handling
 
-## Quickstart
+⸻
 
-```bash
-# 1) Install deps
+Features
+	•	Add new users with form validation and duplicate email checks
+	•	View users in a responsive, paginated table
+	•	Search and filter users by role (Admin/User)
+	•	Sort by name, email, or role
+	•	Edit user details with inline validation
+	•	Delete users with confirmation modal
+	•	Toast notifications for success and error states
+	•	Avatar initials, role badges, and email copy functionality
+
+⸻
+
+Quickstart
+
+# 1. Install dependencies
 npm install
 
-# 2) Create .env
+# 2. Copy environment file
 cp .env.example .env
 
-# 3) Run in dev
+# 3. Run development server
 npm run dev
-# open http://localhost:3000
-```
+# Open http://localhost:3000
 
-### .env
-Create `.env` with:
+⸻
 
-```
-MONGODB_URI="YOUR_MONGODB_ATLAS_CONNECTION_STRING"
-MONGODB_DB="nextjs_crud"
-# optional when deploying (Vercel): set public base url so server fetch uses absolute URL
-NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-```
+Scripts
+	•	npm run dev – Start development server
+	•	npm run build – Build for production
+	•	npm run start – Run production build
+	•	npm run lint – Run ESLint checks
 
-> Tip: Use **MongoDB Atlas** (free tier). On Vercel, set the same env vars in your project settings.
+⸻
 
-## Scripts
-- `npm run dev` – start dev server
-- `npm run build` – build production
-- `npm run start` – run production build
-- `npm run lint` – Next.js ESLint
+Project Structure
 
-## Project Structure
-
-```
 app/
-  api/users/route.ts          # GET, POST
-  api/users/[id]/route.ts     # PUT, DELETE
-  layout.tsx
-  page.tsx
-  globals.css
+  api/users/route.ts          # GET, POST users
+  api/users/[id]/route.ts     # PUT, DELETE users
+  layout.tsx                  # Root layout with header/footer
+  page.tsx                    # Home page
+  globals.css                 # Global styles
 components/
-  UserForm.tsx
-  UserTable.tsx
-  EditUserModal.tsx
+  UserForm.tsx                # Add new user form
+  UserTable.tsx               # User data table with filters, sort, pagination
+  EditUserModal.tsx           # Modal for editing users
+  Toast.tsx                   # Toast notifications
 lib/
   mongodb.ts                  # Mongoose connection helper
 models/
-  User.ts                     # Mongoose model
-```
+  User.ts                     # Mongoose schema and model
 
-## How CRUD works (frontend ⇄ backend)
 
-- **Create:** `UserForm` → `POST /api/users` → MongoDB
-- **Read:** `page.tsx` fetches `GET /api/users` on the server (no-store)
-- **Update:** `EditUserModal` → `PUT /api/users/:id` → refresh list
-- **Delete:** `UserTable` action → `DELETE /api/users/:id` → refresh list
+⸻
 
-Server responses are JSON. Frontend calls use `fetch` with optimistic UI updates and `router.refresh()` to re-render server components.
+Data Flow (Frontend ⇄ Backend)
+	•	Create: UserForm = POST /api/users = MongoDB
+	•	Read: page.tsx fetches GET /api/users (server side, no-store)
+	•	Update: EditUserModal = PUT /api/users/:id = re-fetch users
+	•	Delete: UserTable action = DELETE /api/users/:id = re-fetch users
 
-## Deploy (Vercel)
+Responses are JSON. The frontend uses fetch with error handling and router.refresh() to update UI state.
 
-1. Push this repo to GitHub.
-2. Import it on **Vercel**.
-3. Add env vars in **Settings → Environment Variables**:
-   - `MONGODB_URI`
-   - `MONGODB_DB` (optional)
-   - `NEXT_PUBLIC_BASE_URL` = your Vercel URL, e.g. `https://your-app.vercel.app`
-4. Deploy.
+⸻
 
-> Note: MongoDB Atlas works great on Vercel. No extra adapters required.
+Deployment (Vercel)
 
-## Video Demo (Optional)
+⸻
 
-Record a short Loom:
-- Create a user (validations)
-- Edit the user’s role
-- Delete a user
-- Show code: API routes and model
+Author
 
-## License
-MIT
+Edgar Strozzi
+	•	GitHub: EdgarStrozzi
+	•	Email: edgar22481@outlook.com
+	•	LinkedIn: linkedin.com/in/edgar-strozzi-057948329
+
+⸻
