@@ -39,9 +39,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ToastProvider>
             <main className="max-w-5xl mx-auto p-6">{children}</main>
           </ToastProvider>
-        <footer className="container py-8 text-sm text-white/60">
-          Built with Next.js 14, Tailwind, and MongoDB (Mongoose)
-        </footer>
+          <footer className="border-t border-white/10 mt-12">
+            <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between py-6 px-4 text-sm text-white/60">
+              <p>
+                Built with <span className="font-medium text-white">Next.js 14</span>, 
+                <span className="font-medium text-white"> Tailwind CSS</span>, and 
+                <span className="font-medium text-white"> MongoDB</span>.
+              </p>
+              <div className="flex gap-4 mt-3 md:mt-0">
+                <a
+                  href="https://github.com/EdgarStrozzi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  GitHub
+                </a>
+                <a
+                  href="mailto:edgar22481@outlook.com"
+                  className="hover:text-white transition-colors"
+                >
+                  Email
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/edgar-strozzi-057948329"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  LinkedIn
+                </a>
+              </div>
+            </div>
+          </footer>
       </body>
     </html>
   );
