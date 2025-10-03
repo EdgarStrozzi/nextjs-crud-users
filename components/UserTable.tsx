@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import EditUserModal from "./EditUserModal";
 import { ClipboardIcon } from "@heroicons/react/24/outline";
 import { useToast } from "../components/Toast";
+import { useState, useEffect } from "react";
 
 type User = {
   _id: string;
@@ -17,12 +17,6 @@ export default function UserTable({ initial }: { initial: User[] }) {
   const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
   const router = useRouter();
   const toast = useToast();
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
-  const indexOfLast = currentPage * usersPerPage;
-  const indexOfFirst = indexOfLast - usersPerPage;
 
   // Search/filter
   const [query, setQuery] = useState("");
@@ -40,6 +34,22 @@ export default function UserTable({ initial }: { initial: User[] }) {
   const [sortField, setSortField] = useState<"name" | "email" | "role">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState (1);
+  const usersPerPage = 5;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / usersPerPage));
+  const indexOfLast = currentPage * usersPerPage;
+  const indexOfFirst = indexOfLast - usersPerPage;
+  const currentUsers = filtered.sort(sortFn).slice(indexOfFirst, indexOfLast);
+  const indexofLast = currentPage * usersPerPage;
+
+  // If filters reduce pages, clamp currentPage
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [totalPages, currentPage]);
+
+
   function handleSort(field: "name" | "email" | "role") {
     if (field === sortField) setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     else {
@@ -48,6 +58,7 @@ export default function UserTable({ initial }: { initial: User[] }) {
     }
   }
 
+
   function sortFn(a: User, b: User) {
     const valA = a[sortField].toString().toLowerCase();
     const valB = b[sortField].toString().toLowerCase();
@@ -55,9 +66,7 @@ export default function UserTable({ initial }: { initial: User[] }) {
     if (valA > valB) return sortOrder === "asc" ? 1 : -1;
     return 0;
   }
-
-  const currentUsers = filtered.sort(sortFn).slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filtered.length / usersPerPage);
+  
 
   function getInitials(name: string) {
     return name
@@ -135,8 +144,20 @@ export default function UserTable({ initial }: { initial: User[] }) {
           </tr>
         </thead>
         <tbody>
-          {currentUsers.map((u) => (
-            <tr key={u._id}>
+          {currentUsers.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="p-10 text-center text-white/70">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="text-base">No users found.</div>
+                  <a href="#add-user-form" className="btn-primary">
+                    Add your first user
+                  </a>
+                </div>
+              </td>
+            </tr>
+          ) : (
+            currentUsers.map((u) => (
+              <tr key={u._id}>
               {/* Name + avatar */}
               <td className="align-middle">
                 <span className="inline-flex items-center gap-3">
@@ -190,27 +211,43 @@ export default function UserTable({ initial }: { initial: User[] }) {
                 </div>
               </td>
             </tr>
-          ))}
-        </tbody>
+          ))
+        )}
+      </tbody>
       </table>
 
       {/* Pagination */}
       <div className="flex justify-between items-center p-4">
-        <button
-          className="btn-ghost"
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((p) => p - 1)}
-        >
-          Prev
-        </button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <button
-          className="btn-ghost"
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage((p) => p + 1)}
-        >
-          Next
-        </button>
+        {/* Hide Prev on page 1 */}
+        {totalPages > 1 ? (
+          <button
+            className="btn-ghost"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            Prev
+          </button>
+        ) : (
+          <span /> // keeps spacing when single page
+        )}
+
+        {/* Center text*/}
+        <span>
+          {totalPages === 1 ? `Page ${currentPage}` : `Page ${currentPage} of ${totalPages}`}
+        </span>
+
+        {/* Hide Next on single page */}
+        {totalPages > 1 ? (
+          <button
+            className="btn-ghost"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Next
+          </button>
+        ) : (
+          <span />
+        )}
       </div>
 
       {/* Modals */}
