@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import EditUserModal from "./EditUserModal";
 import { ClipboardIcon } from "@heroicons/react/24/outline";
+import { useToast } from "../components/Toast";
 
 type User = {
   _id: string;
@@ -15,14 +16,15 @@ export default function UserTable({ initial }: { initial: User[] }) {
   const [editing, setEditing] = useState<User | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
   const router = useRouter();
+  const toast = useToast();
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
-
   const indexOfLast = currentPage * usersPerPage;
   const indexOfFirst = indexOfLast - usersPerPage;
 
+  // Search/filter
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"All" | "User" | "Admin">("All");
 
@@ -34,32 +36,13 @@ export default function UserTable({ initial }: { initial: User[] }) {
     return matchesQuery && matchesRole;
   });
 
+  // Sort
   const [sortField, setSortField] = useState<"name" | "email" | "role">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const currentUsers = filtered
-    .sort(sortFn) 
-    .slice(indexOfFirst, indexOfLast);
-
-  const totalPages = Math.ceil(filtered.length / usersPerPage);
-
-  async function handleDelete(user: User) {
-    try {
-      const res = await fetch(`/api/users/${user._id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Failed to delete user");
-      setConfirmDelete(null); // close modal
-      router.refresh(); // refresh table
-    } catch (err) {
-      alert((err as Error).message);
-    }
-  }
-
   function handleSort(field: "name" | "email" | "role") {
-    if (field === sortField) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
+    if (field === sortField) setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    else {
       setSortField(field);
       setSortOrder("asc");
     }
@@ -73,61 +56,79 @@ export default function UserTable({ initial }: { initial: User[] }) {
     return 0;
   }
 
+  const currentUsers = filtered.sort(sortFn).slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filtered.length / usersPerPage);
+
   function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  }
+
+  async function handleDelete(user: User) {
+    try {
+      const res = await fetch(`/api/users/${user._id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({} as any));
+      if (!res.ok) {
+        toast(data?.error || "Failed to delete", "error");
+        throw new Error(data?.error || "Failed to delete user");
+      }
+      toast("User deleted");
+      setConfirmDelete(null);
+      router.refresh();
+    } catch (err) {
+      toast((err as Error).message || "Failed to delete", "error");
+    }
+  }
 
   return (
     <div className="card p-0 overflow-hidden">
-      <div className="flex gap-4 p-4 items-center">
+      {/* Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+        {/* Search: wider */}
         <input
           type="text"
           placeholder="Search by name/email..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="input flex-1"
+          className="input w-full sm:w-[480px] md:w-[560px] lg:w-[640px]"
         />
-        <select
-          className="select"
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value as "All" | "User" | "Admin")}
-        >
-          <option value="All">All</option>
-          <option value="User">User</option>
-          <option value="Admin">Admin</option>
-        </select>
+
+        {/* Role: compact */}
+        <div className="flex items-center gap-2">
+          <label className="text-sm opacity-70">Role</label>
+          <select
+            className="select w-28"
+            value={roleFilter}
+            onChange={(e) =>
+              setRoleFilter(e.target.value as "All" | "User" | "Admin")
+            }
+          >
+            <option value="All">All</option>
+            <option value="User">User</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
       </div>
 
-      
-    <table className="table table-fixed w-full">
-      <colgroup>
-        <col className="w-[34%]" />  {/* Name */}
-        <col className="w-[36%]" />  {/* Email */}
-        <col className="w-[12%]" />  {/* Role */}
-        <col className="w-[18%]" />  {/* Actions */}
-      </colgroup>
+      <table className="table table-fixed w-full">
+        <colgroup>
+          <col className="w-[34%]" />
+          <col className="w-[36%]" />
+          <col className="w-[12%]" />
+          <col className="w-[18%]" />
+        </colgroup>
         <thead>
           <tr>
-            <th
-              className="cursor-pointer align-middle"
-              onClick={() => handleSort("name")}
-            >
+            <th className="cursor-pointer align-middle" onClick={() => handleSort("name")}>
               Name {sortField === "name" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </th>
-            <th
-              className="cursor-pointer align-middle"
-              onClick={() => handleSort("email")}
-            >
+            <th className="cursor-pointer align-middle" onClick={() => handleSort("email")}>
               Email {sortField === "email" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </th>
-            <th
-              className="cursor-pointer align-middle"
-              onClick={() => handleSort("role")}
-            >
+            <th className="cursor-pointer align-middle" onClick={() => handleSort("role")}>
               Role {sortField === "role" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </th>
             <th className="text-right align-middle">Actions</th>
@@ -136,7 +137,7 @@ export default function UserTable({ initial }: { initial: User[] }) {
         <tbody>
           {currentUsers.map((u) => (
             <tr key={u._id}>
-              {/* Avatar + Name  */}
+              {/* Name + avatar */}
               <td className="align-middle">
                 <span className="inline-flex items-center gap-3">
                   <span className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-sm font-bold">
@@ -146,7 +147,7 @@ export default function UserTable({ initial }: { initial: User[] }) {
                 </span>
               </td>
 
-              {/* Email + copy  */}
+              {/* Email + copy */}
               <td className="align-middle">
                 <span className="inline-flex items-center gap-2 text-white/80">
                   <span className="truncate max-w-[320px]">{u.email}</span>
@@ -161,7 +162,7 @@ export default function UserTable({ initial }: { initial: User[] }) {
                 </span>
               </td>
 
-              {/* Role badge */}
+              {/* Role */}
               <td className="align-middle">
                 <span
                   className={`px-2 py-1 rounded text-sm font-medium ${
@@ -173,12 +174,11 @@ export default function UserTable({ initial }: { initial: User[] }) {
                   {u.role}
                 </span>
               </td>
+
+              {/* Actions */}
               <td className="text-right align-middle">
                 <div className="inline-flex gap-2">
-                  <button
-                    className="btn-ghost"
-                    onClick={() => setEditing(u)}
-                  >
+                  <button className="btn-ghost" onClick={() => setEditing(u)}>
                     Edit
                   </button>
                   <button
@@ -194,7 +194,7 @@ export default function UserTable({ initial }: { initial: User[] }) {
         </tbody>
       </table>
 
-      {/* Pagination controls */}
+      {/* Pagination */}
       <div className="flex justify-between items-center p-4">
         <button
           className="btn-ghost"
@@ -203,9 +203,7 @@ export default function UserTable({ initial }: { initial: User[] }) {
         >
           Prev
         </button>
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
+        <span>Page {currentPage} of {totalPages}</span>
         <button
           className="btn-ghost"
           disabled={currentPage === totalPages}
@@ -215,27 +213,18 @@ export default function UserTable({ initial }: { initial: User[] }) {
         </button>
       </div>
 
-      {/* Edit Modal */}
-      {editing && (
-        <EditUserModal user={editing} onClose={() => setEditing(null)} />
-      )}
-
-      {/* Confirm Delete Modal */}
+      {/* Modals */}
+      {editing && <EditUserModal user={editing} onClose={() => setEditing(null)} />}
       {confirmDelete && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="card bg-neutral-800 p-6 space-y-4 max-w-sm w-full">
-            <h3 className="text-lg font-semibold text-red-400">
-              Confirm Delete
-            </h3>
+            <h3 className="text-lg font-semibold text-red-400">Confirm Delete</h3>
             <p>
               Are you sure you want to delete{" "}
               <span className="font-bold">{confirmDelete.name}</span>?
             </p>
             <div className="flex justify-end gap-3">
-              <button
-                className="btn-ghost"
-                onClick={() => setConfirmDelete(null)}
-              >
+              <button className="btn-ghost" onClick={() => setConfirmDelete(null)}>
                 Cancel
               </button>
               <button

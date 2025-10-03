@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "../components/Toast"; // use alias
 
 export default function UserForm() {
   const [name, setName] = useState("");
@@ -10,8 +11,8 @@ export default function UserForm() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const router = useRouter();
+  const toast = useToast();
 
-  // simple email check
   const isValidEmail = useMemo(
     () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()),
     [email]
@@ -26,7 +27,6 @@ export default function UserForm() {
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
 
-    // client-side validation
     if (!isValidName) {
       setError("Name is required.");
       return;
@@ -41,30 +41,33 @@ export default function UserForm() {
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: cleanName, email: cleanEmail, role })
+        body: JSON.stringify({ name: cleanName, email: cleanEmail, role }),
       });
 
-      if (!res.ok) {
-        
-        const data = await res.json().catch(() => ({}));
-        const msg = String(data?.error || "Failed to create user");
+      const data = await res.json().catch(() => ({}));
 
+      if (!res.ok) {
+        const msg = String(data?.error || "Failed to create user");
         if (/E11000/i.test(msg) || /duplicate key/i.test(msg)) {
           setError("That email is already registered. Try a different one.");
+          toast("That email is already registered.", "error");
         } else {
           setError(msg);
+          toast(msg, "error");
         }
         return;
       }
 
-      // Success
       setName("");
       setEmail("");
       setRole("User");
       setSuccess("User created successfully.");
+      toast("User created!");
       router.refresh();
     } catch (err) {
-      setError((err as Error).message || "Something went wrong.");
+      const msg = (err as Error).message || "Something went wrong.";
+      setError(msg);
+      toast(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -73,11 +76,7 @@ export default function UserForm() {
   const disabled = loading || !isValidName || !isValidEmail;
 
   return (
-    <form
-      id="add-user-form"
-      onSubmit={onSubmit}
-      className="card p-6 space-y-4"
-    >
+    <form id="add-user-form" onSubmit={onSubmit} className="card p-6 space-y-4">
       <h2 className="text-lg font-semibold">Add New User</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -126,16 +125,8 @@ export default function UserForm() {
         </div>
       </div>
 
-      {error && (
-        <div className="text-sm text-red-400">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="text-sm text-green-400">
-          {success}
-        </div>
-      )}
+      {error && <div className="text-sm text-red-400">{error}</div>}
+      {success && <div className="text-sm text-green-400">{success}</div>}
 
       <button className="btn-primary disabled:opacity-60" disabled={disabled}>
         {loading ? "Saving..." : "Create User"}

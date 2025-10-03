@@ -1,6 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import Link from "next/link";
+import { ToastProvider } from "../components/Toast";
 
 export const metadata = {
   title: "User CRUD",
@@ -35,8 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </header>
-
-        <main className="container py-8">{children}</main>
+          <ToastProvider>
+            <main className="max-w-5xl mx-auto p-6">{children}</main>
+          </ToastProvider>
         <footer className="container py-8 text-sm text-white/60">
           Built with Next.js 14, Tailwind, and MongoDB (Mongoose)
         </footer>
