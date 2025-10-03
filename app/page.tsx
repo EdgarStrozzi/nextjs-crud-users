@@ -1,18 +1,11 @@
 import UserForm from "../components/UserForm";
 import UserTable from "../components/UserTable";
-export const dynamic = "force-dynamic";
 
-function getBaseUrl() {
-  // Vercel host
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  // Local dev
-  const port = process.env.PORT ?? 3000;
-  return `http://localhost:${port}`;
-}
+// allow no-store on server
+export const revalidate = 0; 
 
 async function getUsers() {
-  const base = getBaseUrl();
-  const res = await fetch(`${base}/api/users`, {
+  const res = await fetch("/api/users", {
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`Failed to fetch users: ${res.status}`);
