@@ -15,9 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <h1 className="text-xl font-semibold">Users CRUD</h1>
             <a
               className="btn-ghost"
-              href="https://github.com/your-username/nextjs-crud-users"
+              href="https://github.com/EdgarStrozzi/nextjs-crud-users" 
               target="_blank"
-              rel="noreferrer"
+              rel="noreferrer noopener"
             >
               View on GitHub
             </a>
