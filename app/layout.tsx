@@ -1,32 +1,42 @@
+// app/layout.tsx
 import "./globals.css";
-import type { Metadata } from "next";
+import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Users CRUD • Next.js + MongoDB",
-  description: "Simple CRUD with Mongoose + Tailwind"
+export const metadata = {
+  title: "User CRUD",
+  description: "Next.js CRUD Demo with MongoDB",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <header className="border-b border-white/10">
-          <div className="container py-5 flex items-center justify-between">
-            <h1 className="text-xl font-semibold">Users CRUD</h1>
-            <a
-              className="btn-ghost"
-              href="https://github.com/EdgarStrozzi/nextjs-crud-users" 
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              View on GitHub
-            </a>
+      <body className="bg-neutral-900 text-white">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-50 backdrop-blur bg-neutral-900/70 border-b border-white/10">
+          <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
+            {/* Left: Title */}
+            <h1 className="text-xl font-bold tracking-wide">
+              User CRUD
+            </h1>
+
+            {/* GitHub + Add User */}
+            <div className="flex gap-3">
+              <a
+                href="https://github.com/EdgarStrozzi/nextjs-crud-users"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost"
+              >
+                GitHub
+              </a>
+              <a href="#add-user-form" className="btn-primary">
+                + Add User
+              </a>
+            </div>
           </div>
         </header>
-        <main className="container py-8">{children}</main>
-        <footer className="container py-8 text-sm text-white/60">
-          Built with Next.js 14, Tailwind, and MongoDB (Mongoose)
-        </footer>
+
+        <main className="max-w-5xl mx-auto p-6">{children}</main>
       </body>
     </html>
   );
