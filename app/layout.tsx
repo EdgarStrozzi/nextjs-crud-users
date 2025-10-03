@@ -36,7 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
 
-        <main className="max-w-5xl mx-auto p-6">{children}</main>
+        <main className="container py-8">{children}</main>
+        <footer className="container py-8 text-sm text-white/60">
+          Built with Next.js 14, Tailwind, and MongoDB (Mongoose)
+        </footer>
       </body>
     </html>
   );

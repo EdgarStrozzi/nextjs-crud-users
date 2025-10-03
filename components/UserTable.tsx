@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import EditUserModal from "./EditUserModal";
+import { ClipboardIcon } from "@heroicons/react/24/outline";
 
 type User = {
   _id: string;
@@ -37,7 +38,7 @@ export default function UserTable({ initial }: { initial: User[] }) {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const currentUsers = filtered
-    .sort(sortFn) // <-- we’ll add this in Step 3
+    .sort(sortFn) 
     .slice(indexOfFirst, indexOfLast);
 
   const totalPages = Math.ceil(filtered.length / usersPerPage);
@@ -72,43 +73,108 @@ export default function UserTable({ initial }: { initial: User[] }) {
     return 0;
   }
 
+  function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+}
+
   return (
     <div className="card p-0 overflow-hidden">
-            <div className="flex gap-4 p-4 items-center">
-      <input
-        type="text"
-        placeholder="Search by name/email..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="input flex-1"
-      />
-      <select
-        className="select"
-        value={roleFilter}
-        onChange={(e) => setRoleFilter(e.target.value as "All" | "User" | "Admin")}
-      >
-        <option value="All">All</option>
-        <option value="User">User</option>
-        <option value="Admin">Admin</option>
-      </select>
-    </div>
-      <table className="table">
+      <div className="flex gap-4 p-4 items-center">
+        <input
+          type="text"
+          placeholder="Search by name/email..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="input flex-1"
+        />
+        <select
+          className="select"
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value as "All" | "User" | "Admin")}
+        >
+          <option value="All">All</option>
+          <option value="User">User</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </div>
+
+      
+    <table className="table table-fixed w-full">
+      <colgroup>
+        <col className="w-[34%]" />  {/* Name */}
+        <col className="w-[36%]" />  {/* Email */}
+        <col className="w-[12%]" />  {/* Role */}
+        <col className="w-[18%]" />  {/* Actions */}
+      </colgroup>
         <thead>
           <tr>
-            <th onClick={() => handleSort("name")} className="cursor-pointer">Name</th>
-            <th onClick={() => handleSort("email")} className="cursor-pointer">Email</th>
-            <th onClick={() => handleSort("role")} className="cursor-pointer">Role</th>
-            <th className="text-right">Actions</th>
+            <th
+              className="cursor-pointer align-middle"
+              onClick={() => handleSort("name")}
+            >
+              Name {sortField === "name" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+            </th>
+            <th
+              className="cursor-pointer align-middle"
+              onClick={() => handleSort("email")}
+            >
+              Email {sortField === "email" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+            </th>
+            <th
+              className="cursor-pointer align-middle"
+              onClick={() => handleSort("role")}
+            >
+              Role {sortField === "role" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+            </th>
+            <th className="text-right align-middle">Actions</th>
           </tr>
         </thead>
         <tbody>
           {currentUsers.map((u) => (
             <tr key={u._id}>
-              <td>{u.name}</td>
-              <td className="text-white/80">{u.email}</td>
-              <td>{u.role}</td>
-              <td className="text-right">
-                <div className="flex gap-2 justify-end">
+              {/* Avatar + Name  */}
+              <td className="align-middle">
+                <span className="inline-flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-sm font-bold">
+                    {getInitials(u.name)}
+                  </span>
+                  <span className="truncate max-w-[220px]">{u.name}</span>
+                </span>
+              </td>
+
+              {/* Email + copy  */}
+              <td className="align-middle">
+                <span className="inline-flex items-center gap-2 text-white/80">
+                  <span className="truncate max-w-[320px]">{u.email}</span>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(u.email)}
+                    className="p-1 hover:bg-white/10 rounded"
+                    title="Copy email"
+                    aria-label={`Copy ${u.email}`}
+                  >
+                    <ClipboardIcon className="w-4 h-4" />
+                  </button>
+                </span>
+              </td>
+
+              {/* Role badge */}
+              <td className="align-middle">
+                <span
+                  className={`px-2 py-1 rounded text-sm font-medium ${
+                    u.role === "Admin"
+                      ? "bg-purple-500/20 text-purple-300"
+                      : "bg-blue-500/20 text-blue-300"
+                  }`}
+                >
+                  {u.role}
+                </span>
+              </td>
+              <td className="text-right align-middle">
+                <div className="inline-flex gap-2">
                   <button
                     className="btn-ghost"
                     onClick={() => setEditing(u)}
