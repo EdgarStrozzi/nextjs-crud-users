@@ -1,19 +1,19 @@
 import UserForm from "../components/UserForm";
 import UserTable from "../components/UserTable";
+import { dbConnect } from "../lib/mongodb";
+import User from "../models/User";
 
-// allow no-store on server
 export const revalidate = 0; 
 
-async function getUsers() {
-  const res = await fetch("/api/users", {
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Failed to fetch users: ${res.status}`);
-  return res.json();
+async function getUsersDirect() {
+  await dbConnect();
+
+  const rows = await User.find().sort({ createdAt: -1 }).lean();
+  return JSON.parse(JSON.stringify(rows));
 }
 
 export default async function Page() {
-  const users = await getUsers();
+  const users = await getUsersDirect();
 
   return (
     <div className="space-y-6">
